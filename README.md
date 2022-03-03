@@ -1,5 +1,5 @@
 # check-snowflake-task
-- Python用のSnowflakeコネクター
+- Python用のSnowflakeコネクターのインストール。
   - Lambda Layersを使って追加。
   - レイヤーの追加方法は下記参照。
     - https://qiita.com/subretu/items/2a0c40326cc857e63922

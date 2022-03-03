@@ -43,10 +43,10 @@ def get_task_status():
         		,state
         		,rank() over (partition by name order by query_start_time desc) as rank
         	from
-        		table (database_name.information_schema.task_history ())
+        		table ({database_name}.information_schema.task_history ())
         	where
             --対象のtask名
-        		name = 'XXXXXXXXXXX'
+        		name = {task_name}
         		and
         		query_id is not null
         )
