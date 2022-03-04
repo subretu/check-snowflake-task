@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 import snowflake.connector
 import os
 import json
+import configparser
 import urllib.request
 
 
@@ -35,18 +36,22 @@ def get_task_status():
     )
     cur = conn.cursor()
 
+    config_ini = configparser.ConfigParser()
+    config_ini.read("./config.ini", encoding='utf-8')
+    taskname = config_ini.get("Task", "taskname")
+
     try:
-        sql = """
+        sql = f"""
         with a1 as (
         	select
         		name
         		,state
         		,rank() over (partition by name order by query_start_time desc) as rank
         	from
-        		table ({database_name}.information_schema.task_history ())
+        		table (DATABASENAME.information_schema.task_history ())
         	where
             --対象のtask名
-        		name = {task_name}
+        		name in ({taskname})
         		and
         		query_id is not null
         )
@@ -59,13 +64,16 @@ def get_task_status():
         ;
         """
         cur.execute(sql)
-        result_row = cur.fetchone()
+        result_row = cur.fetchall()
+        msg = ""
+        for row in result_row:
+            msg += f"{row[0]} : {row[1]}" + "\n"
 
     finally:
         cur.close()
         conn.close()
 
-        return f"{result_row[0]} : {result_row[1]}"
+        return msg
 
 
 def lambda_handler(event, context):
