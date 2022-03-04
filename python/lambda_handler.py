@@ -42,25 +42,26 @@ def get_task_status():
 
     try:
         sql = f"""
-        with a1 as (
-        	select
-        		name
-        		,state
-        		,rank() over (partition by name order by query_start_time desc) as rank
-        	from
-        		table (DATABASENAME.information_schema.task_history ())
-        	where
-            --対象のtask名
-        		name in ({taskname})
-        		and
-        		query_id is not null
+        with task as (
+            select
+                name
+                ,state
+                ,rank() over (partition by name order by query_start_time desc) as rank
+            from
+                --DATABASENAMEは自分の環境のDB名にすること
+                table (DATABASENAME.information_schema.task_history ())
+            where
+                name in ({taskname})
+                and
+                query_id is not null
         )
         select
-        	name, state
+            name
+            ,state
         from
-        	a1
+            task
         where
-        	rank = 1
+            rank = 1
         ;
         """
         cur.execute(sql)
