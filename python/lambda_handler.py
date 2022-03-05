@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta, timezone
 import snowflake.connector
 import os
 import json
@@ -13,7 +12,7 @@ def post_slack(url, is_success, msg=""):
     if is_success:
         text = "Snowflake task state"
     else:
-        text = "<!channel> Lambda execution fail"
+        text = "<!channel> Lambda execution fails（snowflake-task-state-to-slack）"
 
     if msg != "":
         text += f":\n```{msg}```"
