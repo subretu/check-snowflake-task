@@ -11,9 +11,9 @@ SLACK_URL = os.environ.get("SLACK_URL")
 
 def post_slack(url, is_success, msg=""):
     if is_success:
-        text = "Snowflake task is SUCCESS"
+        text = "Snowflake task state"
     else:
-        text = "<!channel> Snowflake task is FAILURE"
+        text = "<!channel> Lambda execution fail"
 
     if msg != "":
         text += f":\n```{msg}```"
