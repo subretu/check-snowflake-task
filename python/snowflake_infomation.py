@@ -50,7 +50,8 @@ class MetaData:
                         f"{row[0]} : {row[1]}（ERROR_CODE:{row[2]} ERROR_MESSAGE:{row[3]}）"
                         + "\n"
                     )
-                msg += f"{row[0]} : {row[1]}" + "\n"
+                else:
+                    msg += f"{row[0]} : {row[1]}" + "\n"
         finally:
             cur.close()
             conn.close()
