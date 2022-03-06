@@ -1,8 +1,7 @@
-import snowflake.connector
 import os
 import json
-import configparser
 import urllib.request
+import snowflake_infomation
 
 
 SLACK_URL = os.environ.get("SLACK_URL")
@@ -12,7 +11,7 @@ def post_slack(url, is_success, msg=""):
     if is_success:
         text = "Snowflake task state"
     else:
-        text = "<!channel> Lambda execution fails（snowflake-task-state-to-slack）"
+        text = "Lambda execution fails（snowflake task state to slack）"
 
     if msg != "":
         text += f":\n```{msg}```"
@@ -27,58 +26,10 @@ def post_slack(url, is_success, msg=""):
     return
 
 
-def get_task_status():
-    conn = snowflake.connector.connect(
-        user=os.environ.get("user"),
-        password=os.environ.get("pass"),
-        account=os.environ.get("account"),
-    )
-    cur = conn.cursor()
-
-    config_ini = configparser.ConfigParser()
-    config_ini.read("./config.ini", encoding='utf-8')
-    taskname = config_ini.get("Task", "taskname")
-
-    try:
-        sql = f"""
-        with task as (
-            select
-                name
-                ,state
-                ,rank() over (partition by name order by query_start_time desc) as rank
-            from
-                --DATABASENAMEは自分の環境のDB名にすること
-                table (DATABASENAME.information_schema.task_history ())
-            where
-                name in ({taskname})
-                and
-                query_id is not null
-        )
-        select
-            name
-            ,state
-        from
-            task
-        where
-            rank = 1
-        ;
-        """
-        cur.execute(sql)
-        result_row = cur.fetchall()
-        msg = ""
-        for row in result_row:
-            msg += f"{row[0]} : {row[1]}" + "\n"
-
-    finally:
-        cur.close()
-        conn.close()
-
-        return msg
-
-
 def lambda_handler(event, context):
     try:
-        msg = get_task_status()
+        snowflake_meta = snowflake_infomation.MetaData()
+        msg = snowflake_meta.get_latest_task_state()
         if SLACK_URL is not None:
             post_slack(SLACK_URL, True, msg)
     except BaseException as e:
